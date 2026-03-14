@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon site - Univers 2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="accueil2-page">
+    <div class="accueil2-bg"></div>
+    <div class="accueil2-blackout" id="blackoutLayer"></div>
+    <div class="accueil2-final-overlay" id="finalOverlay">
+        <p class="accueil2-red-message" id="blackoutMessage">GAME OVER</p>
+        <p class="accueil2-final-subtext">Tu fais quoi maintenant??</p>
+        <div class="accueil2-final-choices">
+            <button type="button" class="accueil2-final-choice-btn">Continuer à s'amuser</button>
+            <button type="button" class="accueil2-final-choice-btn" id="goToIndexBtn">Aller à l'accueil et voir enfin ce portfolio</button>
+            <button type="button" class="accueil2-final-choice-btn">Mhmmm je sais pas</button>
+        </div>
+    </div>
+    <h1 class="accueil2-top-left-title" data-text="Bienvenue toi.."></h1>
+    <h1 class="accueil2-top-left-title accueil2-top-left-subtitle" data-text="Tu es?"></h1>
+    <form class="accueil2-name-wrap" id="namePrompt" onsubmit="return false;">
+        <label for="visitorFirstName" class="accueil2-name-label">Prénom :</label>
+        <input id="visitorFirstName" class="accueil2-name-input" type="text" name="prenom" placeholder="Entre ton prénom" autocomplete="given-name">
+        <button type="submit" class="accueil2-name-button">OK</button>
+    </form>
+    <h1 class="accueil2-top-left-title accueil2-user-greeting" id="userGreeting"></h1>
+    <div class="accueil2-answers" id="answerChoices">
+        <button type="button" class="accueil2-answer-btn" data-choice="super">Je pète la forme!</button>
+        <button type="button" class="accueil2-answer-btn" data-choice="bof">ca va</button>
+        <button type="button" class="accueil2-answer-btn" data-choice="pas-top">c'est la déprime total...</button>
+    </div>
+    <div class="accueil2-error-box" id="errorBox" role="alert" aria-live="polite">
+        <img src="dessiner.png" alt="Erreur" class="accueil2-error-image">
+    </div>
+
+    <script>
+        const title = document.querySelector('.accueil2-top-left-title');
+        const subtitle = document.querySelector('.accueil2-top-left-subtitle');
+        const bgLayer = document.querySelector('.accueil2-bg');
+        const blackoutLayer = document.getElementById('blackoutLayer');
+        const finalOverlay = document.getElementById('finalOverlay');
+        const goToIndexBtn = document.getElementById('goToIndexBtn');
+        const namePrompt = document.getElementById('namePrompt');
+        const firstNameInput = document.getElementById('visitorFirstName');
+        const userGreeting = document.getElementById('userGreeting');
+        const answerChoices = document.getElementById('answerChoices');
+        const errorBox = document.getElementById('errorBox');
+        const fullText = title?.dataset.text || '';
+        const subtitleText = subtitle?.dataset.text || '';
+        const revealStartDelay = 320;
+        const revealStepDelay = 900;
+        const maxPasTopBeforeBlackout = 8;
+        let pasTopClickCount = 0;
+        let finalPhaseTriggered = false;
+
+        function runDialogue() {
+            if (title) {
+                title.textContent = fullText;
+                setTimeout(() => {
+                    title.classList.add('is-visible');
+                }, revealStartDelay);
+            }
+
+            if (subtitle) {
+                subtitle.textContent = subtitleText;
+                setTimeout(() => {
+                    subtitle.classList.add('is-visible');
+                }, revealStartDelay + revealStepDelay);
+            }
+
+            setTimeout(() => {
+                if (namePrompt) {
+                    namePrompt.classList.add('is-visible');
+                }
+
+                if (firstNameInput) {
+                    firstNameInput.focus();
+                }
+            }, revealStartDelay + revealStepDelay * 2);
+        }
+
+        namePrompt?.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const firstName = firstNameInput?.value.trim();
+            if (!firstName || !userGreeting) return;
+
+            userGreeting.textContent = `Et comment tu vas, ${firstName} ?`;
+            setTimeout(() => {
+                userGreeting.classList.add('is-visible');
+            }, 280);
+
+            setTimeout(() => {
+                if (answerChoices) {
+                    answerChoices.classList.add('is-visible');
+                }
+            }, 920);
+        });
+
+        answerChoices?.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLButtonElement)) return;
+
+            const buttons = answerChoices.querySelectorAll('.accueil2-answer-btn');
+            buttons.forEach((btn) => btn.classList.remove('is-selected'));
+            target.classList.add('is-selected');
+
+            if (target.dataset.choice === 'pas-top') {
+                pasTopClickCount += 1;
+
+                errorBox?.classList.add('is-visible');
+                target.classList.remove('is-error');
+                void target.offsetWidth;
+                target.classList.add('is-error');
+                bgLayer?.classList.remove('error-flash');
+                void bgLayer?.offsetWidth;
+                bgLayer?.classList.add('error-flash');
+
+                if (pasTopClickCount >= maxPasTopBeforeBlackout && !finalPhaseTriggered) {
+                    finalPhaseTriggered = true;
+                    blackoutLayer?.classList.add('is-visible');
+                    setTimeout(() => {
+                        finalOverlay?.classList.add('is-visible');
+                    }, 3300);
+                }
+            } else {
+                errorBox?.classList.remove('is-visible');
+                const errorBtn = answerChoices.querySelector('[data-choice="pas-top"]');
+                errorBtn?.classList.remove('is-error');
+            }
+        });
+
+        goToIndexBtn?.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        runDialogue();
+    </script>
+</body>
+</html>
